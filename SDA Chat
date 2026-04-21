@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>SDA Chat — Mockup</title>
+<style>
+  :root {
+    --bg: #f3f1ec;
+    --ink: #1d1d1f;
+    --muted: #6b6b70;
+    --accent: #A91B47;       /* Safe Delivery red */
+    --accent-dark: #8A1338;
+    --accent-soft: #fbe7ee;
+    --chat-bg: #f7f1ec;      /* warm neutral, aligned with SDA palette */
+    --bubble-in: #ffffff;
+    --bubble-out: #fde4ec;   /* soft pink-red for "me" bubbles, from accent */
+    --ai: #f3e9ff;
+    --ai-ink: #5a2ea6;
+    --line: #e6dfd7;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: var(--ink);
+  }
+  .page {
+    display: grid;
+    grid-template-columns: 1fr 420px 1fr;
+    gap: 40px;
+    padding: 40px 32px;
+    max-width: 1400px;
+    margin: 0 auto;
+    align-items: start;
+  }
+  h1 {
+    grid-column: 1 / -1;
+    margin: 0 0 4px 0;
+    font-size: 28px;
+    letter-spacing: -0.01em;
+  }
+  .subtitle {
+    grid-column: 1 / -1;
+    margin: 0 0 24px 0;
+    color: var(--muted);
+    font-size: 15px;
+    max-width: 780px;
+  }
+
+  /* --- Phone frame --- */
+  .phone {
+    justify-self: center;
+    width: 390px;
+    height: 820px;
+    background: #000;
+    border-radius: 48px;
+    padding: 12px;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.18), 0 0 0 1px rgba(0,0,0,0.3) inset;
+    position: relative;
+  }
+  .screen {
+    width: 100%;
+    height: 100%;
+    background: var(--chat-bg);
+    border-radius: 38px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+  .notch {
+    position: absolute;
+    top: 10px; left: 50%;
+    transform: translateX(-50%);
+    width: 120px; height: 28px;
+    background: #000;
+    border-radius: 0 0 18px 18px;
+    z-index: 10;
+  }
+
+  /* --- SDA-style top bar --- */
+  .status-bar {
+    background: var(--accent);
+    color: #fff;
+    padding: 16px 20px 8px 20px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .sda-header {
+    background: var(--accent);
+    color: #fff;
+    padding: 6px 14px 14px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .sda-header .back { font-size: 20px; cursor: pointer; }
+  .sda-title {
+    flex: 1;
+    text-align: center;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    font-size: 15px;
+  }
+  .sda-header .icon { font-size: 18px; }
+
+  /* Sub-header for the open chat */
+  .chat-subheader {
+    background: var(--accent-dark);
+    color: #fff;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .avatar {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: #fff;
+    color: var(--accent);
+    display: grid; place-items: center;
+    font-weight: 700; font-size: 13px;
+    flex-shrink: 0;
+  }
+  .chat-title { flex: 1; line-height: 1.2; }
+  .chat-title .name { font-weight: 600; font-size: 14px; }
+  .chat-title .meta { font-size: 11px; opacity: 0.85; }
+  .chat-icons { display: flex; gap: 14px; font-size: 16px; opacity: 0.95; }
+
+  /* --- Community scope pills (Local / National) --- */
+  .scope {
+    background: #fff;
+    padding: 8px 10px;
+    display: flex;
+    gap: 6px;
+    border-bottom: 1px solid var(--line);
+  }
+  .scope .pill {
+    flex: 1;
+    text-align: center;
+    font-size: 12px;
+    padding: 6px 8px;
+    border-radius: 20px;
+    color: var(--muted);
+    background: #f3ece7;
+    font-weight: 600;
+  }
+  .scope .pill.active {
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+
+  /* --- Pinned content (Theme 1) --- */
+  .pinned {
+    background: #fff;
+    margin: 8px;
+    border-radius: 12px;
+    padding: 10px 12px;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    border-left: 4px solid var(--accent);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+  }
+  .pinned .thumb {
+    width: 42px; height: 42px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #f5c06b, var(--accent));
+    display: grid; place-items: center;
+    color: #fff; font-size: 18px;
+    flex-shrink: 0;
+  }
+  .pinned .t1 { font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+  .pinned .t2 { font-size: 13px; font-weight: 600; line-height: 1.2; }
+  .pinned .t3 { font-size: 11px; color: var(--accent); margin-top: 2px; }
+
+  /* --- AI summary banner (Theme 4) --- */
+  .ai-banner {
+    margin: 0 8px 6px 8px;
+    background: var(--ai);
+    color: var(--ai-ink);
+    border-radius: 12px;
+    padding: 10px 12px;
+    font-size: 12px;
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+  }
+  .ai-banner .sparkle { font-size: 14px; }
+  .ai-banner b { color: var(--ai-ink); }
+  .ai-banner .cta {
+    margin-top: 4px;
+    font-size: 11px;
+    color: var(--ai-ink);
+    text-decoration: underline;
+  }
+
+  /* --- Messages --- */
+  .messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 4px 10px 8px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .day {
+    align-self: center;
+    background: #ffffffcc;
+    color: var(--muted);
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 10px;
+    margin: 6px 0;
+  }
+  .msg {
+    max-width: 78%;
+    padding: 6px 9px 18px 9px;
+    border-radius: 10px;
+    font-size: 13.5px;
+    line-height: 1.35;
+    position: relative;
+    box-shadow: 0 1px 0.5px rgba(0,0,0,0.08);
+  }
+  .msg .who { font-size: 11px; font-weight: 700; color: var(--accent); margin-bottom: 2px; }
+  .msg .time {
+    position: absolute;
+    bottom: 4px; right: 8px;
+    font-size: 10px;
+    color: var(--muted);
+  }
+  .msg.in { background: var(--bubble-in); align-self: flex-start; border-top-left-radius: 2px; }
+  .msg.out { background: var(--bubble-out); align-self: flex-end; border-top-right-radius: 2px; }
+
+  /* Reactions (Theme 3) */
+  .reactions {
+    position: absolute;
+    bottom: -10px; left: 8px;
+    background: #fff;
+    border-radius: 12px;
+    padding: 2px 6px;
+    font-size: 11px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+    display: flex; gap: 2px; align-items: center;
+  }
+
+  /* Translate chip (Theme 1) */
+  .translate-chip {
+    margin-top: 4px;
+    font-size: 11px;
+    color: var(--ai-ink);
+    background: var(--ai);
+    padding: 2px 6px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* Check-in card (Theme 3) */
+  .checkin {
+    align-self: center;
+    background: #fff;
+    border: 1px dashed var(--accent);
+    border-radius: 14px;
+    padding: 10px 12px;
+    font-size: 12px;
+    max-width: 88%;
+    text-align: center;
+  }
+  .checkin .title { font-weight: 700; color: var(--accent); margin-bottom: 4px; }
+  .checkin .btns { display: flex; gap: 6px; justify-content: center; margin-top: 8px; }
+  .checkin button {
+    border: none;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-size: 11px;
+    padding: 5px 10px;
+    border-radius: 12px;
+    font-weight: 600;
+  }
+  .checkin button.primary { background: var(--accent); color: #fff; }
+
+  /* AI nudge */
+  .nudge {
+    align-self: center;
+    background: var(--ai);
+    color: var(--ai-ink);
+    border-radius: 14px;
+    padding: 8px 12px;
+    font-size: 11.5px;
+    max-width: 88%;
+    text-align: center;
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* --- Composer --- */
+  .composer {
+    padding: 8px;
+    background: var(--chat-bg);
+    border-top: 1px solid var(--line);
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+  .input {
+    flex: 1;
+    background: #fff;
+    border-radius: 22px;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--muted);
+    border: 1px solid var(--line);
+  }
+  .input .ai-btn {
+    color: var(--ai-ink);
+    background: var(--ai);
+    border-radius: 10px;
+    padding: 2px 6px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .send {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: var(--accent);
+    color: #fff;
+    display: grid; place-items: center;
+    font-size: 16px;
+  }
+
+  /* --- SDA Bottom nav (matches reference image) --- */
+  .bottom-nav {
+    background: var(--accent);
+    color: #fff;
+    padding: 10px 4px 16px 4px;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 2px;
+  }
+  .bottom-nav .item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    font-size: 11px;
+    opacity: 0.75;
+    position: relative;
+  }
+  .bottom-nav .item .ico {
+    font-size: 18px;
+    line-height: 1;
+  }
+  .bottom-nav .item.active { opacity: 1; font-weight: 700; }
+  .bottom-nav .item.new {
+    opacity: 1;
+  }
+  .bottom-nav .item .badge {
+    position: absolute;
+    top: -2px;
+    right: 22%;
+    background: #fff;
+    color: var(--accent);
+    font-size: 9px;
+    font-weight: 800;
+    border-radius: 9px;
+    padding: 1px 5px;
+    min-width: 16px;
+    text-align: center;
+  }
+  .bottom-nav .item.active::before {
+    content: "";
+    position: absolute;
+    top: -10px;
+    width: 40%;
+    height: 2px;
+    background: #fff;
+    border-radius: 2px;
+  }
+
+  /* --- Callouts --- */
+  .callouts {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .callouts.left { text-align: right; }
+  .callout {
+    background: #fff;
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 12.5px;
+    line-height: 1.4;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    border-left: 3px solid var(--accent);
+  }
+  .callouts.left .callout { border-left: none; border-right: 3px solid var(--accent); }
+  .callout .tag {
+    display: inline-block;
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .callout b { color: var(--ink); }
+  .legend {
+    margin-top: 20px;
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+  .legend .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); margin-right: 6px; vertical-align: middle; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>SDA Chat function — mockup</h1>
+  <p class="subtitle">
+    A Community of Practice chat added to the Safe Delivery App. Same header style, same bottom-nav pattern, same red — a new <b>Community</b> tab sits in the nav where the chat lives. Callouts map each feature back to your themes.
+  </p>
+
+  <!-- LEFT CALLOUTS -->
+  <div class="callouts left">
+    <div class="callout">
+      <span class="tag">Theme 1 — SDA</span>
+      <b>Same visual language as SDA</b> (red header, centered uppercase title, bottom nav). Jakob's Law — existing SDA users feel instantly at home.
+    </div>
+    <div class="callout">
+      <span class="tag">Theme 2 — CoP</span>
+      <b>Local ↔ National</b> pills let users switch between their closed local forum and broader national community without leaving the chat.
+    </div>
+    <div class="callout">
+      <span class="tag">Theme 1 — SDA</span>
+      Pinned <b>Postnatal Care module</b> sits above the messages — content and group discussion stay connected, no app-switching.
+    </div>
+    <div class="callout">
+      <span class="tag">Theme 4 — HCAI</span>
+      <b>AI catch-up summary</b> on top of the thread — solves the "long WhatsApp backlog" pain without requiring every message to be read.
+    </div>
+    <div class="callout">
+      <span class="tag">Theme 1 — SDA</span>
+      <b>Auto-translate chip</b> under foreign-language messages — better communication across a multilingual user base.
+    </div>
+  </div>
+
+  <!-- PHONE -->
+  <div class="phone">
+    <div class="screen">
+      <div class="notch"></div>
+
+      <!-- Status bar -->
+      <div class="status-bar">
+        <span>12.34</span>
+        <span>📶 📡 🔋 77</span>
+      </div>
+
+      <!-- SDA-style header -->
+      <div class="sda-header">
+        <div class="back">‹</div>
+        <div class="sda-title">COMMUNITY</div>
+        <div class="icon">🔍</div>
+      </div>
+
+      <!-- Chat sub-header (open group) -->
+      <div class="chat-subheader">
+        <div class="avatar">RM</div>
+        <div class="chat-title">
+          <div class="name">Regional Midwives — Week 14</div>
+          <div class="meta">12 members · Facilitator: Sara</div>
+        </div>
+        <div class="chat-icons">📹 ⋮</div>
+      </div>
+
+      <!-- Local / National scope -->
+      <div class="scope">
+        <div class="pill active">Local · 12 members</div>
+        <div class="pill">National · 840 members</div>
+      </div>
+
+      <!-- Pinned SDA content -->
+      <div class="pinned">
+        <div class="thumb">👶</div>
+        <div style="flex:1;">
+          <div class="t1">Pinned from SDA</div>
+          <div class="t2">Postnatal Care · Module 3</div>
+          <div class="t3">Tap to open · discussion linked here</div>
+        </div>
+      </div>
+
+      <!-- AI summary -->
+      <div class="ai-banner">
+        <div class="sparkle">✨</div>
+        <div>
+          <b>Catch up in 20 seconds</b> — 38 new messages since yesterday. Group discussed Postnatal Care examples, shared two case stories, and agreed on Thursday's check-in topic.
+          <div class="cta">Read full summary →</div>
+        </div>
+      </div>
+
+      <!-- Messages -->
+      <div class="messages">
+        <div class="day">Today</div>
+
+        <div class="msg in">
+          <div class="who">Sara · Facilitator</div>
+          Morning everyone 👋 Module 3 is pinned above — drop your reflections here before Thursday.
+          <div class="time">08:42</div>
+        </div>
+
+        <div class="msg in">
+          <div class="who">Malik</div>
+          I tried the technique from the postnatal module with a patient yesterday — it actually worked. Thought it would feel forced but it didn't.
+          <div class="reactions">👍 5 ❤️ 2</div>
+          <div class="time">09:15</div>
+        </div>
+
+        <!-- Check-in card -->
+        <div class="checkin">
+          <div class="title">🗓 Scheduled check-in — Thursday 14:00</div>
+          How is your caseload this week? One word is fine.
+          <div class="btns">
+            <button class="primary">I'll join</button>
+            <button>Respond now</button>
+          </div>
+        </div>
+
+        <div class="msg in">
+          <div class="who">Amira</div>
+          Geweldig voorbeeld Malik — ik ga het vandaag ook proberen.
+          <div class="translate-chip">🌐 Translated: "Great example Malik — I'll try it today too."</div>
+          <div class="reactions">👍 3</div>
+          <div class="time">09:31</div>
+        </div>
+
+        <div class="msg out">
+          Sharing a short clip of how I framed it — 30 sec voice note.<br/>
+          🎙 ▶ ———————— 0:30
+          <div class="time">09:44 ✓✓</div>
+        </div>
+
+        <!-- AI engagement nudge -->
+        <div class="nudge">
+          ✨ <span><b>Quiet from 4 members this week.</b> Suggest a quick check-in prompt?</span>
+        </div>
+
+        <div class="msg in">
+          <div class="who">Sara · Facilitator</div>
+          Good idea — who has had a difficult handover recently? No names, just patterns you've noticed.
+          <div class="time">09:51</div>
+        </div>
+      </div>
+
+      <!-- Composer -->
+      <div class="composer">
+        <div class="input">
+          <span>😊</span>
+          <span style="flex:1;">Message the group…</span>
+          <span class="ai-btn">✨ AI</span>
+          <span>📎</span>
+          <span>🎙</span>
+        </div>
+        <div class="send">➤</div>
+      </div>
+
+      <!-- SDA bottom nav with new Community (chat) item -->
+      <div class="bottom-nav">
+        <div class="item">
+          <span class="ico">🏠</span>
+          <span>Home</span>
+        </div>
+        <div class="item">
+          <span class="ico">🔍</span>
+          <span>Search</span>
+        </div>
+        <div class="item active new">
+          <span class="ico">💬</span>
+          <span>Community</span>
+          <span class="badge">3</span>
+        </div>
+        <div class="item">
+          <span class="ico">📖</span>
+          <span>MyLearning</span>
+        </div>
+        <div class="item">
+          <span class="ico">⚙️</span>
+          <span>Settings</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT CALLOUTS -->
+  <div class="callouts">
+    <div class="callout">
+      <span class="tag">Nav bar</span>
+      A new <b>Community</b> tab is added to the existing SDA nav (Home · Search · <b>Community</b> · MyLearning · Settings). Unread badge = gentle pull-back.
+    </div>
+    <div class="callout">
+      <span class="tag">Theme 3 — WhatsApp in CoP</span>
+      Message bubbles, reactions, voice notes and composer follow the WhatsApp pattern users already know — low learning curve.
+    </div>
+    <div class="callout">
+      <span class="tag">Theme 3 — WhatsApp in CoP</span>
+      <b>Scheduled check-ins</b> appear as lightweight in-thread cards — one-tap reply reduces load on the CoP facilitator.
+    </div>
+    <div class="callout">
+      <span class="tag">Theme 4 — HCAI</span>
+      AI <b>engagement nudge</b> flags when members have gone quiet and suggests a prompt — keeps the group active without extra work for the facilitator.
+    </div>
+    <div class="callout">
+      <span class="tag">Theme 2 — CoP</span>
+      Framed as a <b>safe shared-experience space</b>: no private DMs surfaced in-app, matching the preference for group over 1:1.
+    </div>
+    <div class="callout">
+      <span class="tag">Theme 1 — SDA</span>
+      An <b>✨ AI button</b> in the composer helps with phrasing, quick translations, or "summarize this thread" before sending.
+    </div>
+  </div>
+
+  <div class="legend" style="grid-column: 1 / -1;">
+    <span class="dot"></span> Red <code>#A91B47</code> matched from the Safe Delivery header. Purple tint marks AI-assisted surfaces (Theme 4) so they're visually distinguishable from human content.
+  </div>
+
+</div>
+</body>
+</html>
